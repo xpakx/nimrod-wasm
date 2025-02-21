@@ -10,8 +10,21 @@ let wasi: Wasi = {
     fd_write: function() { }
 };
 
+interface NimrodWasmOutputs {
+    jsprintf: (base: any) => void;
+    drawCanvas: (ptr: number, length: number) => void;
+}
+
+interface NimrodWasmInputs {
+    init: () => number;
+    tick: () => void;
+    keyboard_action: (key: number) => void;
+    click: (mouseX: number, mouseY: number) => void;
+}
+
 let canvas: (HTMLCanvasElement | null) = null;
 let context: (CanvasRenderingContext2D | null) = null;
+let nimrod: (NimrodWasmInputs | null) = null
 
 window.onload = async () => {
 	console.debug('Started app');
@@ -30,16 +43,11 @@ window.onload = async () => {
 	init();
 }
 
-interface NimrodWasm {
-    jsprintf: (base: any) => void;
-    drawCanvas: (ptr: number, length: number) => void;
-}
-
 async function init() {
 	if (!canvas) return;
 	const memory = new WebAssembly.Memory({ initial: 2 });
 
-	let io_wasm: NimrodWasm = {
+	let io_wasm: NimrodWasmOutputs = {
 	    jsprintf: function(base: any) {
 		    const view = new Uint8Array(memory.buffer);
 		    const text = decode(view, base);
@@ -60,30 +68,27 @@ async function init() {
 		{ env: { memory }, wasi_snapshot_preview1: wasi, io_wasm: io_wasm } 
 	);
 
-	// @ts-expect-error: method in wasm // TODO
-	const returnCode = instance.exports.init();
+	nimrod = instance.exports as unknown as NimrodWasmInputs;
+	const returnCode = nimrod.init();
 	console.log("Return code:", returnCode);
 	if(returnCode != 0) {
 		return;
 	}
 
 	document.addEventListener('keydown', function(event) {
+		if (!nimrod) return;
 		switch (event.key) {
 			case 'ArrowLeft': case 'h':
-				// @ts-expect-error: method in wasm // TODO
-				instance.exports.keyboard_action(0);
+				nimrod.keyboard_action(0);
 			break;
 			case 'ArrowRight': case 'l':
-				// @ts-expect-error: method in wasm // TODO
-				instance.exports.keyboard_action(1);
+				nimrod.keyboard_action(1);
 			break;
 			case 'ArrowUp': case 'k':
-				// @ts-expect-error: method in wasm // TODO
-				instance.exports.keyboard_action(2);
+				nimrod.keyboard_action(2);
 			break;
 			case 'ArrowDown': case 'j':
-				// @ts-expect-error: method in wasm // TODO
-				instance.exports.keyboard_action(3);
+				nimrod.keyboard_action(3);
 			break;
 		}
 	});
@@ -91,17 +96,17 @@ async function init() {
 
 	canvas.addEventListener("click", (event) => {
 		if (!canvas) return;
+		if (!nimrod) return;
 		const rect = canvas.getBoundingClientRect();
 
 		const mouseX = event.clientX - rect.left;
 		const mouseY = event.clientY - rect.top;
-		// @ts-expect-error: method in wasm // TODO
-		instance.exports.click(mouseX, mouseY);
+		nimrod.click(mouseX, mouseY);
 	});
 
 	function render() {
-		// @ts-expect-error: method in wasm // TODO
-		instance.exports.tick();
+		if (!nimrod) return;
+		nimrod.tick();
 		window.requestAnimationFrame(render);
 	}
 
@@ -115,7 +120,6 @@ function printToElem(value: string, selector: string) {
 	}
 	result.textContent = value;
 }
-
 
 function encode(memory: any, base: number, string: string) {
 	for (let i = 0; i < string.length; i++) {
