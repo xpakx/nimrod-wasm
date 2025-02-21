@@ -1,9 +1,11 @@
 {
   "name": "nimrod-wasm",
   "version": "1.0.0",
+  "description": "isometci game in wasm",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx jest",
+    "build": "npx tsc && cp -r index.html img/ maps/ styles.css dist"
   },
   "author": "",
   "license": "ISC",
