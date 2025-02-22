@@ -87,6 +87,10 @@ void update_ball_position() {
 	}
 }
 
+uint8_t alpha_blend(uint8_t src, uint8_t dest, float alpha) {
+	return (uint8_t)(src * alpha + dest * (1 - alpha));
+}
+
 void draw_img(uint8_t* buffer) {
 	if (img == NULL) {
 		return;
@@ -95,10 +99,13 @@ void draw_img(uint8_t* buffer) {
 		for (int x = 0; x < img_width; x++) {
 			int index = (y * img_width + x) * 4;
 			int buffer_index = (y * width + x) * 4;
-			buffer[buffer_index] = img[index];
-			buffer[buffer_index + 1] = img[index + 1];
-			buffer[buffer_index + 2] = img[index + 2];
-			buffer[buffer_index + 3] = img[index + 3];
+
+			float alpha = img[index + 3] / 255.0f;
+
+			buffer[buffer_index] = alpha_blend(img[index], buffer[buffer_index], alpha);
+			buffer[buffer_index + 1] = alpha_blend(img[index + 1], buffer[buffer_index + 1], alpha);
+			buffer[buffer_index + 2] = alpha_blend(img[index + 2], buffer[buffer_index + 2], alpha);
+			buffer[buffer_index + 3] = (uint8_t)(img[index + 3] + buffer[buffer_index + 3] * (1 - alpha));
 		}
 	}
 }
@@ -106,8 +113,8 @@ void draw_img(uint8_t* buffer) {
 void tick() {
 	update_ball_position();
 	clearScreen(pixel_data);
-	draw_img(pixel_data);
 	draw_ball(pixel_data);
+	draw_img(pixel_data);
 	js_draw_canvas((uint32_t)(uintptr_t)pixel_data, width * height * 4);
 }
 
