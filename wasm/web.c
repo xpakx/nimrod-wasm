@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include <math.h>
 
-#define WIDTH 640
-#define HEIGHT 480
 #define LEFT 0
 #define RIGHT 1
 #define UP 2
@@ -33,6 +31,8 @@ float ball_radius = 30.0f;
 float ball_speed_x = 2.0f;
 float ball_speed_y = 1.5f;
 int ball_color = 0X9399B2FF;
+int width = 640;
+int height = 480;
 
 uint8_t* pixel_data;
 
@@ -44,9 +44,9 @@ void fillPixel(uint8_t* buffer, int index, int color) {
 }
 
 void clearScreen(uint8_t* buffer) {
-	for (int y = 0; y < HEIGHT; y++) {
-		for (int x = 0; x < WIDTH; x++) {
-			int index = (y * WIDTH + x) * 4;
+	for (int y = 0; y < height; y++) {
+		for (int x = 0; x < width; x++) {
+			int index = (y * width + x) * 4;
 			fillPixel(buffer, index, 0X1E1E2EFF);
 		}
 	}
@@ -63,8 +63,8 @@ void draw_ball(uint8_t* buffer) {
 				int px = x0 + x;
 				int py = y0 + y;
 
-				if (px >= 0 && px < WIDTH && py >= 0 && py < HEIGHT) {
-					int index = (py * WIDTH + px) * 4;
+				if (px >= 0 && px < width && py >= 0 && py < height) {
+					int index = (py * width + px) * 4;
 					fillPixel(buffer, index, ball_color);
 				}
 			}
@@ -76,10 +76,10 @@ void update_ball_position() {
 	ball_x += ball_speed_x;
 	ball_y += ball_speed_y;
 
-	if (ball_x < ball_radius || ball_x > WIDTH - ball_radius) {
+	if (ball_x < ball_radius || ball_x > width - ball_radius) {
 		ball_speed_x = -ball_speed_x;
 	}
-	if (ball_y < ball_radius || ball_y > HEIGHT - ball_radius) {
+	if (ball_y < ball_radius || ball_y > height - ball_radius) {
 		ball_speed_y = -ball_speed_y;
 	}
 }
@@ -88,17 +88,27 @@ void tick() {
 	update_ball_position();
 	clearScreen(pixel_data);
 	draw_ball(pixel_data);
-	js_draw_canvas((uint32_t)(uintptr_t)pixel_data, WIDTH * HEIGHT * 4);
+	js_draw_canvas((uint32_t)(uintptr_t)pixel_data, width * height * 4);
 }
 
-int init() {
-	char *text = "WASM animation. Use arrows to change direction.";
-	jsprintf("Message from main(): %s", text ? text : "Allocation failed");
-	pixel_data = (uint8_t*)malloc(WIDTH * HEIGHT * 4);
+int init(int init_width, int init_height) {
+	width = init_width;
+	height = init_height;
+
+	pixel_data = (uint8_t*)malloc(width * height * 4);
 	if(pixel_data == NULL) {
 		return 1;
 	}
 	return 0;
+}
+
+int updateSize(int init_width, int init_height) {
+	if (pixel_data != NULL) {
+		free(pixel_data);
+		pixel_data = NULL;
+	}
+
+	return init(init_width, init_height);
 }
 
 void keyboard_action(uint8_t keyCode) {
@@ -140,10 +150,10 @@ int in_ball(int click_x, int click_y) {
 }
 
 void click(int x, int y) {
-	if(x < 0 || x >= WIDTH) {
+	if(x < 0 || x >= width) {
 		return;
 	}
-	if(y < 0 || y >= WIDTH) {
+	if(y < 0 || y >= width) {
 		return;
 	}
 

@@ -16,7 +16,8 @@ interface NimrodWasmOutputs {
 }
 
 interface NimrodWasmInputs {
-    init: () => number;
+    init: (width: number, height: number) => number;
+    updateSize: (width: number, height: number) => number;
     tick: () => void;
     keyboard_action: (key: number) => void;
     click: (mouseX: number, mouseY: number) => void;
@@ -25,6 +26,8 @@ interface NimrodWasmInputs {
 let canvas: (HTMLCanvasElement | null) = null;
 let context: (CanvasRenderingContext2D | null) = null;
 let nimrod: (NimrodWasmInputs | null) = null
+const width = 640;
+const height = 480;
 
 window.onload = async () => {
 	console.debug('Started app');
@@ -38,8 +41,8 @@ window.onload = async () => {
 		console.error("No context");
 		return;
 	}
-	canvas.width = 640;
-	canvas.height = 480;
+	canvas.width = width;
+	canvas.height = height;
 	init();
 }
 
@@ -56,8 +59,9 @@ async function init() {
 	    },
 	    drawCanvas: function(ptr: number, length: number) {
 		    if (!context) return;
+		    if (!canvas) return;
 		    const imageData = new Uint8ClampedArray(memory.buffer, ptr, length);
-		    const data = new ImageData(imageData, 640, 480);
+		    const data = new ImageData(imageData, canvas.width, canvas.height);
 		    context.putImageData(data, 0, 0);
 	    }
 	};
@@ -69,7 +73,7 @@ async function init() {
 	);
 
 	nimrod = instance.exports as unknown as NimrodWasmInputs;
-	const returnCode = nimrod.init();
+	const returnCode = nimrod.init(canvas.width, canvas.height);
 	console.log("Return code:", returnCode);
 	if(returnCode != 0) {
 		return;
@@ -89,6 +93,15 @@ async function init() {
 			break;
 			case 'ArrowDown': case 'j':
 				nimrod.keyboard_action(3);
+			break;
+			case '+':
+				if (!canvas) return;
+				canvas.width = 800;
+				canvas.height = 600;
+				const returnCode = nimrod.updateSize(800, 600);
+				if(returnCode != 0) {
+					console.error("UM");
+				}
 			break;
 		}
 	});
