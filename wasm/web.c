@@ -87,9 +87,26 @@ void update_ball_position() {
 	}
 }
 
+void draw_img(uint8_t* buffer) {
+	if (img == NULL) {
+		return;
+	}
+	for (int y = 0; y < img_height; y++) {
+		for (int x = 0; x < img_width; x++) {
+			int index = (y * img_width + x) * 4;
+			int buffer_index = (y * width + x) * 4;
+			buffer[buffer_index] = img[index];
+			buffer[buffer_index + 1] = img[index + 1];
+			buffer[buffer_index + 2] = img[index + 2];
+			buffer[buffer_index + 3] = img[index + 3];
+		}
+	}
+}
+
 void tick() {
 	update_ball_position();
 	clearScreen(pixel_data);
+	draw_img(pixel_data);
 	draw_ball(pixel_data);
 	js_draw_canvas((uint32_t)(uintptr_t)pixel_data, width * height * 4);
 }
