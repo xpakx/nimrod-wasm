@@ -95,8 +95,10 @@ int init(int init_width, int init_height) {
 	width = init_width;
 	height = init_height;
 
+	jsprintf("Allocating canvas object.");
 	pixel_data = (uint8_t*)malloc(width * height * 4);
 	if(pixel_data == NULL) {
+		jsprintf("Allocating failed.");
 		return 1;
 	}
 	return 0;
@@ -104,10 +106,10 @@ int init(int init_width, int init_height) {
 
 int updateSize(int init_width, int init_height) {
 	if (pixel_data != NULL) {
+		jsprintf("Invaldating canvas object.");
 		free(pixel_data);
 		pixel_data = NULL;
 	}
-
 	return init(init_width, init_height);
 }
 

@@ -54,8 +54,9 @@ async function init() {
 	    jsprintf: function(base: any) {
 		    const view = new Uint8Array(memory.buffer);
 		    const text = decode(view, base);
-		    console.log(text);
-		    printToElem(text, "#result");
+		    const timestamp = new Date().toISOString();
+		    const msg = `[${timestamp}] [LOG]: ${text}`;
+		    console.log(msg);
 	    },
 	    drawCanvas: function(ptr: number, length: number) {
 		    if (!context) return;
@@ -124,14 +125,6 @@ async function init() {
 	}
 
 	render();
-}
-
-function printToElem(value: string, selector: string) {
-	const result = document.querySelector(selector);
-	if(!result) {
-		return;
-	}
-	result.textContent = value;
 }
 
 function encode(memory: any, base: number, string: string) {
