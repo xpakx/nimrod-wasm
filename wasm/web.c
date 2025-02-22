@@ -101,6 +101,7 @@ int init(int init_width, int init_height) {
 		jsprintf("Allocating failed.");
 		return 1;
 	}
+
 	return 0;
 }
 
