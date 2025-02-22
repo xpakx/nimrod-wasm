@@ -33,6 +33,9 @@ float ball_speed_y = 1.5f;
 int ball_color = 0X9399B2FF;
 int width = 640;
 int height = 480;
+uint8_t* img = NULL;
+size_t img_width = 0;
+size_t img_height = 0;
 
 uint8_t* pixel_data;
 
@@ -167,4 +170,11 @@ void click(int x, int y) {
 			ball_color = 0x9399B2FF;
 		}
 	}
+}
+
+void sendImage(uint8_t* imageData, size_t inputWidth, size_t inputHeight) {
+	size_t totalPixels = inputWidth * inputHeight;
+	img = imageData;
+	img_width = inputWidth;
+	img_height = inputHeight;
 }

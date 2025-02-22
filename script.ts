@@ -21,6 +21,8 @@ interface NimrodWasmInputs {
     tick: () => void;
     keyboard_action: (key: number) => void;
     click: (mouseX: number, mouseY: number) => void;
+    sendImage: (ptr: number, width: number, height: number) => void;
+    malloc: (size: number) => number;
 }
 
 let canvas: (HTMLCanvasElement | null) = null;
@@ -125,6 +127,15 @@ async function init() {
 	}
 
 	render();
+
+	const img = new Image();
+	img.src = "img/house.svg";
+	await img.decode();
+
+	const offscreenCanvas = new OffscreenCanvas(70, 70);
+	const contextOff = offscreenCanvas.getContext('2d')!;
+	contextOff.drawImage(img, 0, 0, 70, 70);
+	sendImageToNimrod(offscreenCanvas, memory);
 }
 
 function encode(memory: any, base: number, string: string) {
@@ -145,3 +156,27 @@ function decode(memory: any, base: number) {
 
 	return result;
 };
+
+function encodeImage(offscreenCanvas: OffscreenCanvas, memory: any, base: number): number {
+	const context = offscreenCanvas.getContext('2d')!;
+	const imageData = context.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+	const pixelData = imageData.data;
+
+	const memoryView = new Uint8Array(memory.buffer);
+
+	const pixelDataLength = pixelData.length;
+	if (base + pixelDataLength > memoryView.length) {
+		throw new Error('Not enough space in WASM memory to store the image.');
+	}
+
+	memoryView.set(pixelData, base);
+	return pixelDataLength;
+}
+
+function sendImageToNimrod(offscreenCanvas: OffscreenCanvas, memory: any) {
+	if (!nimrod) return;
+	const pixelDataLength = offscreenCanvas.width * offscreenCanvas.height * 4;
+	const base = nimrod.malloc(pixelDataLength);
+	encodeImage(offscreenCanvas, memory, base);
+	nimrod.sendImage(base, offscreenCanvas.width, offscreenCanvas.height);
+}
