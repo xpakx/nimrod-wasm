@@ -13,6 +13,11 @@
 #define MOUSE_LEFT 0
 #define MOUSE_MIDDLE 1
 
+#define DEFAULT_TILE_WIDTH 64
+#define DEFAULT_TILE_HEIGHT 32
+#define ROWS 4
+#define COLS 4
+
 __attribute__((import_module("io_wasm"), import_name("jsprintf"))) 
 void js_jsprintf(char* str);
 
@@ -44,6 +49,8 @@ uint8_t* pixel_data;
 
 int mouseX = 0;
 int mouseY = 0;
+
+uint32_t map[ROWS][COLS];
 
 void fillPixel(uint8_t* buffer, int index, int color) {
 	buffer[index] = (color >> 24) & 0xFF;
@@ -116,9 +123,23 @@ void draw_img(uint8_t* buffer) {
 	}
 }
 
+void drawIsometricMap() {
+	int translateX  = width / 2;
+	int translateY  = height / 2 - (DEFAULT_TILE_HEIGHT/2);
+	for (int x = 0; x < ROWS; x++) {
+		for (int y = 0; y < COLS; y++) {
+			int screenX = translateX + ((x - y) * (DEFAULT_TILE_WIDTH / 2));
+			int screenY = translateY + ((x + y) * (DEFAULT_TILE_HEIGHT / 2));
+			int index = (screenY * width + screenX) * 4;
+			fillPixel(pixel_data, index, map[x][y]);
+		}
+	}
+}
+
 void tick() {
 	update_ball_position();
 	clearScreen(pixel_data);
+	drawIsometricMap();
 	draw_ball(pixel_data);
 	draw_img(pixel_data);
 	js_draw_canvas((uint32_t)(uintptr_t)pixel_data, width * height * 4);
@@ -134,6 +155,13 @@ int init(int init_width, int init_height) {
 		jsprintf("Allocating failed.");
 		return 1;
 	}
+
+	for (int i = 0; i < ROWS; i++) {
+		for (int j = 0; j < COLS; j++) {
+			map[i][j] = 0x97B106FF;
+		}
+	}
+
 
 	return 0;
 }
