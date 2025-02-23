@@ -123,6 +123,32 @@ void draw_img(uint8_t* buffer) {
 	}
 }
 
+void drawRow(uint8_t* buffer, int y, int startX, int endX, uint32_t color) {
+        for (int dx = startX + 1; dx <= endX - 1; dx++) { // +1 and -1 just for debugging
+            int index = (y * width + dx) * 4;
+            fillPixel(buffer, index, color);
+        }
+}
+
+void drawTile(uint8_t* buffer, int x, int y, uint32_t color) {
+    int halfWidth = DEFAULT_TILE_WIDTH / 2;
+    int halfHeight = DEFAULT_TILE_HEIGHT / 2;
+
+    int startX = x;
+    int endX = x;
+    int step = DEFAULT_TILE_WIDTH / DEFAULT_TILE_HEIGHT;
+    for (int dy = 0; dy < halfHeight; dy++) {
+	startX -= step;
+	endX += step;
+	drawRow(buffer, y - dy, startX, endX, color);
+    }
+    for (int dy = halfHeight; dy < DEFAULT_TILE_HEIGHT; dy++) {
+	startX += step;
+	endX -= step;
+	drawRow(buffer, y - dy, startX, endX, color);
+    }
+}
+
 void drawIsometricMap() {
 	int translateX  = width / 2;
 	int translateY  = height / 2 - (DEFAULT_TILE_HEIGHT/2);
@@ -130,8 +156,7 @@ void drawIsometricMap() {
 		for (int y = 0; y < COLS; y++) {
 			int screenX = translateX + ((x - y) * (DEFAULT_TILE_WIDTH / 2));
 			int screenY = translateY + ((x + y) * (DEFAULT_TILE_HEIGHT / 2));
-			int index = (screenY * width + screenX) * 4;
-			fillPixel(pixel_data, index, map[x][y]);
+			drawTile(pixel_data, screenX, screenY, map[x][y]);
 		}
 	}
 }
