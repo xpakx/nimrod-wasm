@@ -33,14 +33,9 @@ void jsprintf(const char* format, ...) {
 	js_jsprintf(buffer);
 }
 
-float ball_x = 100.0f;
-float ball_y = 100.0f;
-float ball_radius = 30.0f;
-float ball_speed_x = 2.0f;
-float ball_speed_y = 1.5f;
-int ball_color = 0X9399B2FF;
 int width = 640;
 int height = 480;
+
 uint8_t* img = NULL;
 size_t img_width = 0;
 size_t img_height = 0;
@@ -65,38 +60,6 @@ void clearScreen(uint8_t* buffer) {
 			int index = (y * width + x) * 4;
 			fillPixel(buffer, index, 0X1E1E2EFF);
 		}
-	}
-}
-
-void draw_ball(uint8_t* buffer) {
-	int x0 = (int)ball_x;
-	int y0 = (int)ball_y;
-	int r = (int)ball_radius;
-
-	for (int y = -r; y <= r; ++y) {
-		for (int x = -r; x <= r; ++x) {
-			if (x*x + y*y <= r*r) {
-				int px = x0 + x;
-				int py = y0 + y;
-
-				if (px >= 0 && px < width && py >= 0 && py < height) {
-					int index = (py * width + px) * 4;
-					fillPixel(buffer, index, ball_color);
-				}
-			}
-		}
-	}
-}
-
-void update_ball_position() {
-	ball_x += ball_speed_x;
-	ball_y += ball_speed_y;
-
-	if (ball_x < ball_radius || ball_x > width - ball_radius) {
-		ball_speed_x = -ball_speed_x;
-	}
-	if (ball_y < ball_radius || ball_y > height - ball_radius) {
-		ball_speed_y = -ball_speed_y;
 	}
 }
 
@@ -162,10 +125,8 @@ void drawIsometricMap() {
 }
 
 void tick() {
-	update_ball_position();
 	clearScreen(pixel_data);
 	drawIsometricMap();
-	draw_ball(pixel_data);
 	draw_img(pixel_data);
 	js_draw_canvas((uint32_t)(uintptr_t)pixel_data, width * height * 4);
 }
@@ -200,33 +161,12 @@ int updateSize(int init_width, int init_height) {
 	return init(init_width, init_height);
 }
 
-
-int in_ball(int click_x, int click_y) {
-	int x0 = (int)ball_x;
-	int y0 = (int)ball_y;
-
-	float d = sqrtf(pow(click_x - x0, 2) + pow(click_y - y0, 2));
-	jsprintf("distance: %.2f", d);
-	if(d < ball_radius) {
-		return 1;
-	}
-	return 0;
-}
-
 void click(int x, int y) {
 	if(x < 0 || x >= width) {
 		return;
 	}
 	if(y < 0 || y >= width) {
 		return;
-	}
-
-	if(in_ball(x, y) == 1) {
-		if(ball_color == 0x9399B2FF) {
-			ball_color = 0xF2CDCDFF;
-		} else {
-			ball_color = 0x9399B2FF;
-		}
 	}
 }
 
@@ -261,24 +201,12 @@ void onMouseWheel(int deltaY) {
 void onKeyDown(uint8_t keyCode) {
 	switch (keyCode) {
 		case LEFT:
-			if(ball_speed_x > 0) {
-				ball_speed_x = -ball_speed_x;
-			}
 			break;
 		case RIGHT:
-			if(ball_speed_x < 0) {
-				ball_speed_x = -ball_speed_x;
-			}
 			break;
 		case UP:
-			if(ball_speed_y > 0) {
-				ball_speed_y = -ball_speed_y;
-			}
 			break;
 		case DOWN:
-			if(ball_speed_y < 0) {
-				ball_speed_y = -ball_speed_y;
-			}
 			break;
 	}
 }
