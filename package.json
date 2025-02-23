@@ -1,7 +1,7 @@
 {
   "name": "nimrod-wasm",
   "version": "1.0.0",
-  "description": "isometci game in wasm",
+  "description": "isometric game in wasm",
   "main": "index.js",
   "scripts": {
     "test": "npx jest",

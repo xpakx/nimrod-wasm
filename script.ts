@@ -19,10 +19,14 @@ interface NimrodWasmInputs {
     init: (width: number, height: number) => number;
     updateSize: (width: number, height: number) => number;
     tick: () => void;
-    keyboard_action: (key: number) => void;
-    click: (mouseX: number, mouseY: number) => void;
     sendImage: (ptr: number, width: number, height: number) => void;
     malloc: (size: number) => number;
+    onMouseClick: (button: number, mouseX: number, mouseY: number) => void;
+    onMouseMove: (mouseX: number, mouseY: number) => void;
+    onMouseUp: (button: number, mouseX: number, mouseY: number) => void;
+    onMouseWheel: (deltaY: number) => void;
+    onKeyDown: (key: number) => void;
+    onKeyUp: (key: number) => void;
 }
 
 let canvas: (HTMLCanvasElement | null) = null;
@@ -85,18 +89,6 @@ async function init() {
 	document.addEventListener('keydown', function(event) {
 		if (!nimrod) return;
 		switch (event.key) {
-			case 'ArrowLeft': case 'h':
-				nimrod.keyboard_action(0);
-			break;
-			case 'ArrowRight': case 'l':
-				nimrod.keyboard_action(1);
-			break;
-			case 'ArrowUp': case 'k':
-				nimrod.keyboard_action(2);
-			break;
-			case 'ArrowDown': case 'j':
-				nimrod.keyboard_action(3);
-			break;
 			case '+':
 				if (!canvas) return;
 				canvas.width = 800;
@@ -107,6 +99,8 @@ async function init() {
 				}
 			break;
 		}
+		const keyCode = translateKey(event.key);
+		if (keyCode) nimrod.onKeyDown(keyCode);
 	});
 
 
@@ -117,7 +111,9 @@ async function init() {
 
 		const mouseX = event.clientX - rect.left;
 		const mouseY = event.clientY - rect.top;
-		nimrod.click(mouseX, mouseY);
+		const button = event.button;
+
+		nimrod.onMouseClick(button, mouseX, mouseY);
 	});
 
 	function render() {
@@ -179,4 +175,18 @@ function sendImageToNimrod(offscreenCanvas: OffscreenCanvas, memory: any) {
 	const base = nimrod.malloc(pixelDataLength);
 	encodeImage(offscreenCanvas, memory, base);
 	nimrod.sendImage(base, offscreenCanvas.width, offscreenCanvas.height);
+}
+
+function translateKey(key: string): undefined | number {
+	switch (key) {
+		case 'ArrowLeft': case 'h':
+			return 0;
+		case 'ArrowRight': case 'l':
+			return 1;
+		case 'ArrowUp': case 'k':
+			return 2;
+		case 'ArrowDown': case 'j':
+			return 3;
+		}
+	return undefined;
 }

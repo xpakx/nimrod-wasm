@@ -10,6 +10,9 @@
 #define UP 2
 #define DOWN 3
 
+#define MOUSE_LEFT 0
+#define MOUSE_MIDDLE 1
+
 __attribute__((import_module("io_wasm"), import_name("jsprintf"))) 
 void js_jsprintf(char* str);
 
@@ -38,6 +41,9 @@ size_t img_width = 0;
 size_t img_height = 0;
 
 uint8_t* pixel_data;
+
+int mouseX = 0;
+int mouseY = 0;
 
 void fillPixel(uint8_t* buffer, int index, int color) {
 	buffer[index] = (color >> 24) & 0xFF;
@@ -141,31 +147,6 @@ int updateSize(int init_width, int init_height) {
 	return init(init_width, init_height);
 }
 
-void keyboard_action(uint8_t keyCode) {
-	switch (keyCode) {
-		case LEFT:
-			if(ball_speed_x > 0) {
-				ball_speed_x = -ball_speed_x;
-			}
-			break;
-		case RIGHT:
-			if(ball_speed_x < 0) {
-				ball_speed_x = -ball_speed_x;
-			}
-			break;
-		case UP:
-			if(ball_speed_y > 0) {
-				ball_speed_y = -ball_speed_y;
-			}
-			break;
-		case DOWN:
-			if(ball_speed_y < 0) {
-				ball_speed_y = -ball_speed_y;
-			}
-			break;
-	}
-}
-
 
 int in_ball(int click_x, int click_y) {
 	int x0 = (int)ball_x;
@@ -201,4 +182,54 @@ void sendImage(uint8_t* imageData, size_t inputWidth, size_t inputHeight) {
 	img = imageData;
 	img_width = inputWidth;
 	img_height = inputHeight;
+}
+
+void onMouseMove(int x, int y) {
+	mouseX = x;
+	mouseY = y;
+}
+
+void onMouseClick(int button, int x, int y) {
+	if (button == MOUSE_LEFT) {
+		click(x, y);
+	} else if (button == MOUSE_MIDDLE) {
+		// TODO
+	}
+}
+
+void onMouseUp(int button, int x, int y) {
+	// TODO
+}
+
+void onMouseWheel(int deltaY) {
+	// TODO
+}
+
+void onKeyDown(uint8_t keyCode) {
+	switch (keyCode) {
+		case LEFT:
+			if(ball_speed_x > 0) {
+				ball_speed_x = -ball_speed_x;
+			}
+			break;
+		case RIGHT:
+			if(ball_speed_x < 0) {
+				ball_speed_x = -ball_speed_x;
+			}
+			break;
+		case UP:
+			if(ball_speed_y > 0) {
+				ball_speed_y = -ball_speed_y;
+			}
+			break;
+		case DOWN:
+			if(ball_speed_y < 0) {
+				ball_speed_y = -ball_speed_y;
+			}
+			break;
+	}
+}
+
+void onKeyUp(uint8_t keyCode) {
+	// TODO
 }
