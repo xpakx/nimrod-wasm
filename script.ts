@@ -141,9 +141,13 @@ async function init() {
 	img.src = "img/house.svg";
 	await img.decode();
 
-	const offscreenCanvas = new OffscreenCanvas(70, 70);
+
+	const imgWidth = 64 * 2;
+	const imgHeight = img.height*(imgWidth/img.width);
+
+	const offscreenCanvas = new OffscreenCanvas(imgWidth, imgHeight);
 	const contextOff = offscreenCanvas.getContext('2d')!;
-	contextOff.drawImage(img, 0, 0, 70, 70);
+	contextOff.drawImage(img, 0, 0, imgWidth, imgHeight);
 	sendImageToNimrod(offscreenCanvas, memory);
 }
 

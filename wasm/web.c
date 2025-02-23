@@ -16,7 +16,7 @@
 #define DEFAULT_TILE_WIDTH 64
 #define DEFAULT_TILE_HEIGHT 32
 #define ROWS 4
-#define COLS 4
+#define COLS 6
 
 __attribute__((import_module("io_wasm"), import_name("jsprintf"))) 
 void js_jsprintf(char* str);
@@ -39,6 +39,8 @@ int height = 480;
 uint8_t* img = NULL;
 size_t img_width = 0;
 size_t img_height = 0;
+int building_x = 2;
+int building_y = 2;
 
 uint8_t* pixel_data;
 
@@ -69,14 +71,14 @@ uint8_t alpha_blend(uint8_t src, uint8_t dest, float alpha) {
 	return (uint8_t)(src * alpha + dest * (1 - alpha));
 }
 
-void draw_img(uint8_t* buffer) {
+void drawImage(uint8_t* buffer, int startX, int startY) {
 	if (img == NULL) {
 		return;
 	}
 	for (int y = 0; y < img_height; y++) {
 		for (int x = 0; x < img_width; x++) {
 			int index = (y * img_width + x) * 4;
-			int buffer_index = (y * width + x) * 4;
+			int buffer_index = ((y + startY) * width + x + startX) * 4;
 
 			float alpha = img[index + 3] / 255.0f;
 
@@ -127,7 +129,7 @@ void setMouseIsoPosition(int x, int y) {
 	jsprintf("iso: (%d, %d)", isoX, isoY);
 }
 
-void drawIsometricMap() {
+void drawIsometricMap(uint8_t* buffer) {
 	int translateX  = width / 2;
 	int translateY  = height / 2 - (DEFAULT_TILE_HEIGHT/2);
 	for (int x = 0; x < ROWS; x++) {
@@ -138,15 +140,25 @@ void drawIsometricMap() {
 			if (isoX == x && isoY == y) {
 				color = 0X000000FF;
 			}
-			drawTile(pixel_data, screenX, screenY, color);
+			drawTile(buffer, screenX, screenY, color);
 		}
 	}
 }
 
+void renderBuildings(uint8_t* buffer) {
+	int translateX  = width / 2;
+	int translateY  = height / 2 - (DEFAULT_TILE_HEIGHT/2);
+
+	int screenX = translateX + ((building_x - building_y) * (DEFAULT_TILE_WIDTH / 2));
+	int screenY = translateY + ((building_x + building_y) * (DEFAULT_TILE_HEIGHT / 2));
+
+	drawImage(pixel_data, screenX - img_width/2, screenY - img_height);
+}
+
 void tick() {
 	clearScreen(pixel_data);
-	drawIsometricMap();
-	draw_img(pixel_data);
+	drawIsometricMap(pixel_data);
+	renderBuildings(pixel_data);
 	js_draw_canvas((uint32_t)(uintptr_t)pixel_data, width * height * 4);
 }
 
@@ -166,7 +178,6 @@ int init(int init_width, int init_height) {
 			map[i][j] = 0x97B106FF;
 		}
 	}
-
 
 	return 0;
 }
