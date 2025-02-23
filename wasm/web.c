@@ -44,6 +44,8 @@ uint8_t* pixel_data;
 
 int mouseX = 0;
 int mouseY = 0;
+int isoX = 0;
+int isoY = 0;
 
 uint32_t map[ROWS][COLS];
 
@@ -112,6 +114,19 @@ void drawTile(uint8_t* buffer, int x, int y, uint32_t color) {
     }
 }
 
+void setMouseIsoPosition(int x, int y) {
+	float xTransl = x - (float)width / 2;
+	float yTransl = y - (float)(height / 2 - (float)(DEFAULT_TILE_HEIGHT / 2));
+
+	float isoX_double = (float)xTransl / DEFAULT_TILE_WIDTH + (float)yTransl / DEFAULT_TILE_HEIGHT;
+	float isoY_double = (float)yTransl / DEFAULT_TILE_HEIGHT - (float)xTransl / DEFAULT_TILE_WIDTH;
+
+	isoX = (int)ceil(isoX_double);
+	isoY = (int)ceil(isoY_double);
+	jsprintf("screen: (%d, %d)", x, y);
+	jsprintf("iso: (%d, %d)", isoX, isoY);
+}
+
 void drawIsometricMap() {
 	int translateX  = width / 2;
 	int translateY  = height / 2 - (DEFAULT_TILE_HEIGHT/2);
@@ -119,7 +134,11 @@ void drawIsometricMap() {
 		for (int y = 0; y < COLS; y++) {
 			int screenX = translateX + ((x - y) * (DEFAULT_TILE_WIDTH / 2));
 			int screenY = translateY + ((x + y) * (DEFAULT_TILE_HEIGHT / 2));
-			drawTile(pixel_data, screenX, screenY, map[x][y]);
+			uint32_t color = map[x][y];
+			if (isoX == x && isoY == y) {
+				color = 0X000000FF;
+			}
+			drawTile(pixel_data, screenX, screenY, color);
 		}
 	}
 }
@@ -180,6 +199,7 @@ void sendImage(uint8_t* imageData, size_t inputWidth, size_t inputHeight) {
 void onMouseMove(int x, int y) {
 	mouseX = x;
 	mouseY = y;
+	setMouseIsoPosition(x, y);
 }
 
 void onMouseClick(int button, int x, int y) {

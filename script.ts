@@ -116,6 +116,19 @@ async function init() {
 		nimrod.onMouseClick(button, mouseX, mouseY);
 	});
 
+	canvas.addEventListener('mousemove', function(event) {
+		if (!nimrod) return;
+		if (!canvas) return;
+		const rect = canvas.getBoundingClientRect();
+
+		const mouseX = event.clientX - rect.left;
+		const mouseY = event.clientY - rect.top;
+
+		nimrod.onMouseMove(mouseX, mouseY);
+	});
+
+
+
 	function render() {
 		if (!nimrod) return;
 		nimrod.tick();
