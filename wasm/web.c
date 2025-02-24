@@ -116,15 +116,29 @@ void drawTile(uint8_t* buffer, int x, int y, uint32_t color) {
     }
 }
 
+int screenToIsoX(int x, int y) {
+	float isoX = (float)x / DEFAULT_TILE_WIDTH + (float)y / DEFAULT_TILE_HEIGHT;
+	return (int)ceil(isoX);
+}
+
+int screenToIsoY(int x, int y) {
+	float isoY = (float)y / DEFAULT_TILE_HEIGHT - (float)x / DEFAULT_TILE_WIDTH;
+	return (int)ceil(isoY);
+}
+
+int isoToScreenX(int x, int y) {
+	return (x - y) * (DEFAULT_TILE_WIDTH / 2);
+}
+
+int isoToScreenY(int x, int y) {
+	return (x + y) * (DEFAULT_TILE_HEIGHT / 2);
+}
+
 void setMouseIsoPosition(int x, int y) {
 	float xTransl = x - (float)width / 2;
 	float yTransl = y - (float)(height / 2 - (float)(DEFAULT_TILE_HEIGHT / 2));
-
-	float isoX_double = (float)xTransl / DEFAULT_TILE_WIDTH + (float)yTransl / DEFAULT_TILE_HEIGHT;
-	float isoY_double = (float)yTransl / DEFAULT_TILE_HEIGHT - (float)xTransl / DEFAULT_TILE_WIDTH;
-
-	isoX = (int)ceil(isoX_double);
-	isoY = (int)ceil(isoY_double);
+	isoX = screenToIsoX(xTransl, yTransl);
+	isoY = screenToIsoY(xTransl, yTransl);
 	jsprintf("screen: (%d, %d)", x, y);
 	jsprintf("iso: (%d, %d)", isoX, isoY);
 }
@@ -134,8 +148,8 @@ void drawIsometricMap(uint8_t* buffer) {
 	int translateY  = height / 2 - (DEFAULT_TILE_HEIGHT/2);
 	for (int x = 0; x < ROWS; x++) {
 		for (int y = 0; y < COLS; y++) {
-			int screenX = translateX + ((x - y) * (DEFAULT_TILE_WIDTH / 2));
-			int screenY = translateY + ((x + y) * (DEFAULT_TILE_HEIGHT / 2));
+			int screenX = translateX + isoToScreenX(x, y);
+			int screenY = translateY + isoToScreenY(x, y);
 			uint32_t color = map[x][y];
 			if (isoX == x && isoY == y) {
 				color = 0X000000FF;
@@ -149,16 +163,21 @@ void renderBuildings(uint8_t* buffer) {
 	int translateX  = width / 2;
 	int translateY  = height / 2 - (DEFAULT_TILE_HEIGHT/2);
 
-	int screenX = translateX + ((building_x - building_y) * (DEFAULT_TILE_WIDTH / 2));
-	int screenY = translateY + ((building_x + building_y) * (DEFAULT_TILE_HEIGHT / 2));
+	int screenX = translateX + isoToScreenX(building_x, building_y);
+	int screenY = translateY + isoToScreenY(building_x, building_y);
 
 	drawImage(pixel_data, screenX - img_width/2, screenY - img_height);
 }
 
+void drawMap(uint8_t* buffer) {
+	drawIsometricMap(pixel_data);
+	// TODO: render roads
+	renderBuildings(pixel_data); // TODO: add pedestrians
+}
+
 void tick() {
 	clearScreen(pixel_data);
-	drawIsometricMap(pixel_data);
-	renderBuildings(pixel_data);
+	drawMap(pixel_data);
 	js_draw_canvas((uint32_t)(uintptr_t)pixel_data, width * height * 4);
 }
 
