@@ -5,8 +5,12 @@
   "main": "index.js",
   "scripts": {
     "test": "npx jest",
-    "build": "npx tsc && npm run wasm && cp -r index.html img/ maps/ styles.css dist",
-    "wasm": "make -C wasm OUTPUT_DIR=../dist"
+    "build": "npm run build:js && npm run build:wasm ",
+    "build:wasm": "make -C wasm OUTPUT_DIR=../dist",
+    "build:js": "npx tsc && cp -r index.html img/ maps/ styles.css dist",
+    "debug:wat": "wasm2wat dist/web.wasm > dist/web.wat",
+    "clean": "rm -rf dist/*",
+    "serve": "python3 -m http.server --directory dist 8080"
   },
   "author": "",
   "license": "ISC",
