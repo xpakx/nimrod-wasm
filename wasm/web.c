@@ -20,16 +20,13 @@ void jsprintf(const char* format, ...) {
 	js_jsprintf(buffer);
 }
 
-int width = 640;
-int height = 480;
+Canvas canvas;
 
 uint8_t* img = NULL;
 size_t img_width = 0;
 size_t img_height = 0;
 int building_x = 2;
 int building_y = 2;
-
-uint8_t* pixel_data;
 
 int mouseX = 0;
 int mouseY = 0;
@@ -58,17 +55,17 @@ int isoToScreenY(int x, int y) {
 }
 
 void setMouseIsoPosition(int x, int y) {
-	float xTransl = x - (float)width / 2;
-	float yTransl = y - (float)(height / 2 - (float)(DEFAULT_TILE_HEIGHT / 2));
+	float xTransl = x - (float)canvas.width / 2;
+	float yTransl = y - (float)(canvas.height / 2 - (float)(DEFAULT_TILE_HEIGHT / 2));
 	isoX = screenToIsoX(xTransl, yTransl);
 	isoY = screenToIsoY(xTransl, yTransl);
 	jsprintf("screen: (%d, %d)", x, y);
 	jsprintf("iso: (%d, %d)", isoX, isoY);
 }
 
-void drawIsometricMap(uint8_t* buffer) {
-	int translateX  = width / 2;
-	int translateY  = height / 2 - (DEFAULT_TILE_HEIGHT/2);
+void drawIsometricMap(Canvas* canvas) {
+	int translateX  = canvas->width / 2;
+	int translateY  = canvas->height / 2 - (DEFAULT_TILE_HEIGHT/2);
 	for (int x = 0; x < ROWS; x++) {
 		for (int y = 0; y < COLS; y++) {
 			int screenX = translateX + isoToScreenX(x, y);
@@ -77,40 +74,37 @@ void drawIsometricMap(uint8_t* buffer) {
 			if (isoX == x && isoY == y) {
 				color = 0X000000FF;
 			}
-			drawTile(buffer, width, screenX, screenY, color);
+			drawTile(canvas, screenX, screenY, color);
 		}
 	}
 }
 
-void renderBuildings(uint8_t* buffer) {
-	int translateX  = width / 2;
-	int translateY  = height / 2 - (DEFAULT_TILE_HEIGHT/2);
+void renderBuildings(Canvas* canvas) {
+	int translateX  = canvas->width / 2;
+	int translateY  = canvas->height / 2 - (DEFAULT_TILE_HEIGHT/2);
 
 	int screenX = translateX + isoToScreenX(building_x, building_y);
 	int screenY = translateY + isoToScreenY(building_x, building_y);
 
-	drawImage(img, img_width, img_height, pixel_data, width, height, screenX - img_width/2, screenY - img_height);
+	drawImage(img, img_width, img_height, canvas, screenX - img_width/2, screenY - img_height);
 }
 
-void drawMap(uint8_t* buffer) {
-	drawIsometricMap(pixel_data);
+void drawMap(Canvas* canvas) {
+	drawIsometricMap(canvas);
 	// TODO: render roads
-	renderBuildings(pixel_data); // TODO: add pedestrians
+	renderBuildings(canvas); // TODO: add pedestrians
 }
 
 void tick() {
-	clearScreen(pixel_data, width, height);
-	drawMap(pixel_data);
-	js_draw_canvas((uint32_t)(uintptr_t)pixel_data, width * height * 4);
+	clearScreen(&canvas);
+	drawMap(&canvas);
+	js_draw_canvas((uint32_t)(uintptr_t)canvas.buffer, canvas.width * canvas.height * 4);
 }
 
 int init(int init_width, int init_height) {
-	width = init_width;
-	height = init_height;
-
 	jsprintf("Allocating canvas object.");
-	pixel_data = (uint8_t*)malloc(width * height * 4);
-	if(pixel_data == NULL) {
+	canvas  = createCanvas(init_width, init_height);
+	if(canvas.buffer == NULL) {
 		jsprintf("Allocating failed.");
 		return 1;
 	}
@@ -125,19 +119,16 @@ int init(int init_width, int init_height) {
 }
 
 int updateSize(int init_width, int init_height) {
-	if (pixel_data != NULL) {
-		jsprintf("Invaldating canvas object.");
-		free(pixel_data);
-		pixel_data = NULL;
-	}
+	jsprintf("Invaldating canvas object.");
+	destroyCanvas(&canvas);
 	return init(init_width, init_height);
 }
 
 void click(int x, int y) {
-	if(x < 0 || x >= width) {
+	if(x < 0 || x >= canvas.width) {
 		return;
 	}
-	if(y < 0 || y >= width) {
+	if(y < 0 || y >= canvas.width) {
 		return;
 	}
 }
