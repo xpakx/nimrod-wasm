@@ -26,7 +26,7 @@ interface Wasi {
     fd_write: () => void;
 }
 
-test('Wasm initialized correctly', async () => {
+async function initializeWasm(): Promise<NimrodWasmInputs> {
 	let wasi: Wasi = {
 		fd_close: function() { },
 		fd_seek: function() { },
@@ -42,8 +42,23 @@ test('Wasm initialized correctly', async () => {
 	const memory = new WebAssembly.Memory({ initial: 2 });
 	const buffer = fs.readFileSync(wasmPath);
 	// @ts-expect-error: wasm 
-	const { instance } = await WebAssembly.instantiate(buffer, { env: { memory }, wasi_snapshot_preview1: wasi, io_wasm: io_wasm });
-	const nimrod = instance.exports as unknown as NimrodWasmInputs;
+	const { instance } = await WebAssembly.instantiate(buffer, { 
+		env: { memory }, 
+		wasi_snapshot_preview1: wasi, 
+		io_wasm: io_wasm 
+	});
+	return instance.exports as unknown as NimrodWasmInputs;
+}
 
-	expect(nimrod.init(10, 10)).toBe(0);
+
+describe('Wasm Module Tests', () => {
+	let nimrod: NimrodWasmInputs;
+
+	beforeAll(async () => {
+		nimrod = await initializeWasm();
+	});
+
+	test('Wasm initialized correctly', async () => {
+		expect(nimrod.init(10, 10)).toBe(0);
+	});
 });
