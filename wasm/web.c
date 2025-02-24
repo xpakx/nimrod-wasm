@@ -5,18 +5,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#define LEFT 0
-#define RIGHT 1
-#define UP 2
-#define DOWN 3
-
-#define MOUSE_LEFT 0
-#define MOUSE_MIDDLE 1
-
-#define DEFAULT_TILE_WIDTH 64
-#define DEFAULT_TILE_HEIGHT 32
-#define ROWS 4
-#define COLS 6
+#include <common.h>
 
 __attribute__((import_module("io_wasm"), import_name("jsprintf"))) 
 void js_jsprintf(char* str);
