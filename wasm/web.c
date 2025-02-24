@@ -7,6 +7,7 @@
 
 #include <common.h>
 #include <canvas.h>
+#include <coord.h>
 
 __attribute__((import_module("io_wasm"), import_name("jsprintf"))) 
 void js_jsprintf(char* str);
@@ -28,65 +29,34 @@ size_t img_height = 0;
 int building_x = 2;
 int building_y = 2;
 
-int mouseX = 0;
-int mouseY = 0;
-int isoX = 0;
-int isoY = 0;
+Pos mouse;
+Pos isoMouse;
 
 uint32_t map[ROWS][COLS];
 
-
-int screenToIsoX(int x, int y) {
-	float isoX = (float)x / DEFAULT_TILE_WIDTH + (float)y / DEFAULT_TILE_HEIGHT;
-	return (int)ceil(isoX);
-}
-
-int screenToIsoY(int x, int y) {
-	float isoY = (float)y / DEFAULT_TILE_HEIGHT - (float)x / DEFAULT_TILE_WIDTH;
-	return (int)ceil(isoY);
-}
-
-int isoToScreenX(int x, int y) {
-	return (x - y) * (DEFAULT_TILE_WIDTH / 2);
-}
-
-int isoToScreenY(int x, int y) {
-	return (x + y) * (DEFAULT_TILE_HEIGHT / 2);
-}
-
-void setMouseIsoPosition(int x, int y) {
-	float xTransl = x - (float)canvas.width / 2;
-	float yTransl = y - (float)(canvas.height / 2 - (float)(DEFAULT_TILE_HEIGHT / 2));
-	isoX = screenToIsoX(xTransl, yTransl);
-	isoY = screenToIsoY(xTransl, yTransl);
-	jsprintf("screen: (%d, %d)", x, y);
-	jsprintf("iso: (%d, %d)", isoX, isoY);
-}
-
 void drawIsometricMap(Canvas* canvas) {
-	int translateX  = canvas->width / 2;
-	int translateY  = canvas->height / 2 - (DEFAULT_TILE_HEIGHT/2);
-	for (int x = 0; x < ROWS; x++) {
-		for (int y = 0; y < COLS; y++) {
-			int screenX = translateX + isoToScreenX(x, y);
-			int screenY = translateY + isoToScreenY(x, y);
-			uint32_t color = map[x][y];
-			if (isoX == x && isoY == y) {
+	Pos iso;
+	Pos screen;
+	for (iso.x = 0; iso.x < ROWS; iso.x++) {
+		for (iso.y = 0; iso.y < COLS; iso.y++) {
+			isoToScreen(canvas, &iso, &screen);
+			uint32_t color = map[iso.x][iso.y];
+			if (isoMouse.x == iso.x && isoMouse.y == iso.y) {
 				color = 0X000000FF;
 			}
-			drawTile(canvas, screenX, screenY, color);
+			drawTile(canvas, screen.x, screen.y, color);
 		}
 	}
 }
 
 void renderBuildings(Canvas* canvas) {
-	int translateX  = canvas->width / 2;
-	int translateY  = canvas->height / 2 - (DEFAULT_TILE_HEIGHT/2);
+	Pos iso;
+	Pos screen;
+	iso.x = building_x;
+	iso.y = building_y;
+	isoToScreen(canvas, &iso, &screen);
 
-	int screenX = translateX + isoToScreenX(building_x, building_y);
-	int screenY = translateY + isoToScreenY(building_x, building_y);
-
-	drawImage(img, img_width, img_height, canvas, screenX - img_width/2, screenY - img_height);
+	drawImage(img, img_width, img_height, canvas, screen.x - img_width/2, screen.y - img_height);
 }
 
 void drawMap(Canvas* canvas) {
@@ -101,7 +71,7 @@ void tick() {
 	js_draw_canvas((uint32_t)(uintptr_t)canvas.buffer, canvas.width * canvas.height * 4);
 }
 
-int init(int init_width, int init_height) {
+int declareCanvas(int init_width, int init_height) {
 	jsprintf("Allocating canvas object.");
 	canvas  = createCanvas(init_width, init_height);
 	if(canvas.buffer == NULL) {
@@ -114,14 +84,21 @@ int init(int init_width, int init_height) {
 			map[i][j] = 0x97B106FF;
 		}
 	}
-
 	return 0;
+}
+
+int init(int init_width, int init_height) {
+	mouse.x = 0;
+	mouse.y = 0;
+	isoMouse.x = 0;
+	isoMouse.y = 0;
+	return declareCanvas(init_width, init_height);
 }
 
 int updateSize(int init_width, int init_height) {
 	jsprintf("Invaldating canvas object.");
 	destroyCanvas(&canvas);
-	return init(init_width, init_height);
+	return declareCanvas(init_width, init_height);
 }
 
 void click(int x, int y) {
@@ -141,9 +118,11 @@ void sendImage(uint8_t* imageData, size_t inputWidth, size_t inputHeight) {
 }
 
 void onMouseMove(int x, int y) {
-	mouseX = x;
-	mouseY = y;
-	setMouseIsoPosition(x, y);
+	mouse.x = x;
+	mouse.y = y;
+	screenToIso(&canvas, &mouse, &isoMouse);
+	jsprintf("screen: (%d, %d)", mouse.x, mouse.y);
+	jsprintf("iso: (%d, %d)", isoMouse.x, isoMouse.y);
 }
 
 void onMouseClick(int button, int x, int y) {
