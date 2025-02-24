@@ -6,12 +6,10 @@
 #include <math.h>
 
 #include <common.h>
+#include <canvas.h>
 
 __attribute__((import_module("io_wasm"), import_name("jsprintf"))) 
 void js_jsprintf(char* str);
-
-__attribute__((import_module("io_wasm"), import_name("drawCanvas"))) 
-void js_draw_canvas(uint32_t ptr, uint32_t length);
 
 void jsprintf(const char* format, ...) {
 	char buffer[1024];
@@ -40,70 +38,6 @@ int isoY = 0;
 
 uint32_t map[ROWS][COLS];
 
-void fillPixel(uint8_t* buffer, int index, int color) {
-	buffer[index] = (color >> 24) & 0xFF;
-	buffer[index + 1] = (color >> 16) & 0xFF;
-	buffer[index + 2] = (color >> 8) & 0xFF;
-	buffer[index + 3] = color & 0xFF;
-}
-
-void clearScreen(uint8_t* buffer) {
-	for (int y = 0; y < height; y++) {
-		for (int x = 0; x < width; x++) {
-			int index = (y * width + x) * 4;
-			fillPixel(buffer, index, 0X1E1E2EFF);
-		}
-	}
-}
-
-uint8_t alpha_blend(uint8_t src, uint8_t dest, float alpha) {
-	return (uint8_t)(src * alpha + dest * (1 - alpha));
-}
-
-void drawImage(uint8_t* buffer, int startX, int startY) {
-	if (img == NULL) {
-		return;
-	}
-	for (int y = 0; y < img_height; y++) {
-		for (int x = 0; x < img_width; x++) {
-			int index = (y * img_width + x) * 4;
-			int buffer_index = ((y + startY) * width + x + startX) * 4;
-
-			float alpha = img[index + 3] / 255.0f;
-
-			buffer[buffer_index] = alpha_blend(img[index], buffer[buffer_index], alpha);
-			buffer[buffer_index + 1] = alpha_blend(img[index + 1], buffer[buffer_index + 1], alpha);
-			buffer[buffer_index + 2] = alpha_blend(img[index + 2], buffer[buffer_index + 2], alpha);
-			buffer[buffer_index + 3] = (uint8_t)(img[index + 3] + buffer[buffer_index + 3] * (1 - alpha));
-		}
-	}
-}
-
-void drawRow(uint8_t* buffer, int y, int startX, int endX, uint32_t color) {
-        for (int dx = startX + 1; dx <= endX - 1; dx++) { // +1 and -1 just for debugging
-            int index = (y * width + dx) * 4;
-            fillPixel(buffer, index, color);
-        }
-}
-
-void drawTile(uint8_t* buffer, int x, int y, uint32_t color) {
-    int halfWidth = DEFAULT_TILE_WIDTH / 2;
-    int halfHeight = DEFAULT_TILE_HEIGHT / 2;
-
-    int startX = x;
-    int endX = x;
-    int step = DEFAULT_TILE_WIDTH / DEFAULT_TILE_HEIGHT;
-    for (int dy = 0; dy < halfHeight; dy++) {
-	startX -= step;
-	endX += step;
-	drawRow(buffer, y - dy, startX, endX, color);
-    }
-    for (int dy = halfHeight; dy < DEFAULT_TILE_HEIGHT; dy++) {
-	startX += step;
-	endX -= step;
-	drawRow(buffer, y - dy, startX, endX, color);
-    }
-}
 
 int screenToIsoX(int x, int y) {
 	float isoX = (float)x / DEFAULT_TILE_WIDTH + (float)y / DEFAULT_TILE_HEIGHT;
@@ -143,7 +77,7 @@ void drawIsometricMap(uint8_t* buffer) {
 			if (isoX == x && isoY == y) {
 				color = 0X000000FF;
 			}
-			drawTile(buffer, screenX, screenY, color);
+			drawTile(buffer, width, screenX, screenY, color);
 		}
 	}
 }
@@ -155,7 +89,7 @@ void renderBuildings(uint8_t* buffer) {
 	int screenX = translateX + isoToScreenX(building_x, building_y);
 	int screenY = translateY + isoToScreenY(building_x, building_y);
 
-	drawImage(pixel_data, screenX - img_width/2, screenY - img_height);
+	drawImage(img, img_width, img_height, pixel_data, width, height, screenX - img_width/2, screenY - img_height);
 }
 
 void drawMap(uint8_t* buffer) {
@@ -165,7 +99,7 @@ void drawMap(uint8_t* buffer) {
 }
 
 void tick() {
-	clearScreen(pixel_data);
+	clearScreen(pixel_data, width, height);
 	drawMap(pixel_data);
 	js_draw_canvas((uint32_t)(uintptr_t)pixel_data, width * height * 4);
 }
