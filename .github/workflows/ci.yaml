@@ -1,6 +1,9 @@
 name: CI
 run-name: ci pipeline 
-on: workflow_dispatch # disable for now
+on: 
+  push:
+    branches:
+      - master
 jobs:
   Build-Game:
     runs-on: ubuntu-latest
@@ -64,5 +67,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ID }}
-          command: pages deploy dist --project-name=wasimrod
-          directory: dist
+          command: pages deploy dist --project-name=wasimrod --branch=main
