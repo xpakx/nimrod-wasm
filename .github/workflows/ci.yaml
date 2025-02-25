@@ -32,7 +32,6 @@ jobs:
       - name: Run tests
         run: npm run test
   Deploy-To-Cloudflare:
-    if: false
     needs: Build-Game
     runs-on: ubuntu-latest
     steps:
@@ -42,10 +41,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
+      - name: Install wasm toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang llvm lld binaryen
+      - name: Install wasi
+        run: |
+          wget https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-20/wasi-sdk-20.0-linux.tar.gz
+          tar -xzf wasi-sdk-20.0-linux.tar.gz
+          export WASI=$PWD/wasi-sdk-20.0/share/wasi-sysroot
+          echo "WASI=$WASI" >> $GITHUB_ENV
+      - name: Create dist folder
+        run: mkdir dist
+      - name: Compile wasm
+        run: make -C wasm OUTPUT_DIR=../dist WASI=$WASI
       - name: Install dependencies
         run: npm ci
       - name: Build
-        run: npm run build
+        run: npm run build:js
       - name: Publish to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
