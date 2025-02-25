@@ -1,0 +1,54 @@
+name: CI
+run-name: ci pipeline 
+on: workflow_dispatch # disable for now
+jobs:
+  Build-Game:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the source code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      - name: Install wasm toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang llvm lld binaryen
+      - name: Install wasi
+        run: |
+          wget https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-20/wasi-sdk-20.0-linux.tar.gz
+          tar -xzf wasi-sdk-20.0-linux.tar.gz
+          export WASI=$PWD/wasi-sdk-20.0/share/wasi-sysroot
+          echo "WASI=$WASI" >> $GITHUB_ENV
+      - name: Compile wasm
+        run: make -C wasm OUTPUT_DIR=../dist WASI=$WASI
+
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build:js
+      - name: Run tests
+        run: npm run test
+  Deploy-To-Cloudflare:
+    if: false
+    needs: Build-Game
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the source code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ID }}
+          projectName: wasimrod
+          directory: dist
