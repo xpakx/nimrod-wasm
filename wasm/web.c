@@ -8,6 +8,7 @@
 #include <common.h>
 #include <canvas.h>
 #include <coord.h>
+#include <map.h>
 
 __attribute__((import_module("io_wasm"), import_name("jsprintf"))) 
 void js_jsprintf(char* str);
@@ -26,48 +27,17 @@ Canvas canvas;
 uint8_t* img = NULL;
 size_t img_width = 0;
 size_t img_height = 0;
-int building_x = 2;
-int building_y = 2;
 
 Pos mouse;
 Pos isoMouse;
+Pos building;
 
 uint32_t map[ROWS][COLS];
 
-void drawIsometricMap(Canvas* canvas) {
-	Pos iso;
-	Pos screen;
-	for (iso.x = 0; iso.x < ROWS; iso.x++) {
-		for (iso.y = 0; iso.y < COLS; iso.y++) {
-			isoToScreen(canvas, &iso, &screen);
-			uint32_t color = map[iso.x][iso.y];
-			if (isoMouse.x == iso.x && isoMouse.y == iso.y) {
-				color = 0X000000FF;
-			}
-			drawTile(canvas, screen.x, screen.y, color);
-		}
-	}
-}
-
-void renderBuildings(Canvas* canvas) {
-	Pos iso;
-	Pos screen;
-	iso.x = building_x;
-	iso.y = building_y;
-	isoToScreen(canvas, &iso, &screen);
-
-	drawImage(img, img_width, img_height, canvas, screen.x - img_width/2, screen.y - img_height);
-}
-
-void drawMap(Canvas* canvas) {
-	drawIsometricMap(canvas);
-	// TODO: render roads
-	renderBuildings(canvas); // TODO: add pedestrians
-}
 
 void tick() {
 	clearScreen(&canvas);
-	drawMap(&canvas);
+	drawMap(&canvas, &isoMouse, &building, img_width, img_height, img, map);
 	js_draw_canvas((uint32_t)(uintptr_t)canvas.buffer, canvas.width * canvas.height * 4);
 }
 
@@ -92,6 +62,8 @@ int init(int init_width, int init_height) {
 	mouse.y = 0;
 	isoMouse.x = 0;
 	isoMouse.y = 0;
+	building.x = 2;
+	building.y = 2;
 	return declareCanvas(init_width, init_height);
 }
 
