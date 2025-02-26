@@ -25,16 +25,16 @@ void jsprintf(const char* format, ...) {
 
 Canvas canvas;
 ImageSprite img;
+Building building;
 
 Pos mouse;
 Pos isoMouse;
-Pos building;
 
 uint32_t map[ROWS][COLS];
 
 void tick() {
 	clearScreen(&canvas);
-	drawMap(&canvas, &isoMouse, &building, img.width, img.height, img.img, map);
+	drawMap(&canvas, &isoMouse, &building, map);
 	js_draw_canvas((uint32_t)(uintptr_t)canvas.buffer, canvas.width * canvas.height * 4);
 }
 
@@ -59,8 +59,6 @@ int init(int init_width, int init_height) {
 	mouse.y = 0;
 	isoMouse.x = 0;
 	isoMouse.y = 0;
-	building.x = 2;
-	building.y = 2;
 	return declareCanvas(init_width, init_height);
 }
 
@@ -81,6 +79,9 @@ void click(int x, int y) {
 
 void sendImage(uint8_t* imageData, size_t inputWidth, size_t inputHeight) {
 	img = createSprite(imageData, inputWidth, inputHeight);
+	building.img = &img;
+	building.pos.x = 2;
+	building.pos.y = 2;
 }
 
 void onMouseMove(int x, int y) {
