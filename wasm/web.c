@@ -9,6 +9,7 @@
 #include <canvas.h>
 #include <coord.h>
 #include <map.h>
+#include <building.h>
 
 __attribute__((import_module("io_wasm"), import_name("jsprintf"))) 
 void js_jsprintf(char* str);
@@ -23,10 +24,7 @@ void jsprintf(const char* format, ...) {
 }
 
 Canvas canvas;
-
-uint8_t* img = NULL;
-size_t img_width = 0;
-size_t img_height = 0;
+ImageSprite img;
 
 Pos mouse;
 Pos isoMouse;
@@ -34,10 +32,9 @@ Pos building;
 
 uint32_t map[ROWS][COLS];
 
-
 void tick() {
 	clearScreen(&canvas);
-	drawMap(&canvas, &isoMouse, &building, img_width, img_height, img, map);
+	drawMap(&canvas, &isoMouse, &building, img.width, img.height, img.img, map);
 	js_draw_canvas((uint32_t)(uintptr_t)canvas.buffer, canvas.width * canvas.height * 4);
 }
 
@@ -83,10 +80,7 @@ void click(int x, int y) {
 }
 
 void sendImage(uint8_t* imageData, size_t inputWidth, size_t inputHeight) {
-	size_t totalPixels = inputWidth * inputHeight;
-	img = imageData;
-	img_width = inputWidth;
-	img_height = inputHeight;
+	img = createSprite(imageData, inputWidth, inputHeight);
 }
 
 void onMouseMove(int x, int y) {
