@@ -33,10 +33,10 @@ void renderBuildings(Canvas* canvas, Array* buildings) {
 
 }
 
-void drawMap(Canvas* canvas, Pos* isoMouse, Array* buildings, MapLayer* map) {
+void drawMap(Canvas* canvas, Pos* isoMouse, MapLayer* map) {
 	drawIsometricMap(canvas, isoMouse, map);
 	// TODO: render roads
-	renderBuildings(canvas, buildings); // TODO: add pedestrians
+	renderBuildings(canvas, &map->buildings); // TODO: add pedestrians
 }
 
 MapLayer createMapLayer(int width, int height) {

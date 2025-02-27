@@ -26,7 +26,6 @@ void jsprintf(const char* format, ...) {
 
 Canvas canvas;
 ImageSprite img;
-Array buildings;
 
 Pos mouse;
 Pos isoMouse;
@@ -35,7 +34,7 @@ MapLayer mapLayer;
 
 void tick() {
 	clearScreen(&canvas);
-	drawMap(&canvas, &isoMouse, &buildings, &mapLayer);
+	drawMap(&canvas, &isoMouse, &mapLayer);
 	js_draw_canvas((uint32_t)(uintptr_t)canvas.buffer, canvas.width * canvas.height * 4);
 }
 
@@ -61,6 +60,7 @@ int declareMap(int width, int height) {
 			mapLayer.map[i][j] = 0x97B106FF;
 		}
 	}
+	createArray(&mapLayer.buildings, 2);
 	return 0;
 }
 
@@ -74,8 +74,6 @@ int init(int init_width, int init_height) {
 	if (can == 1) {
 		return 1;
 	}
-	createArray(&buildings, 2);
-
 	return declareMap(ROWS, COLS);
 }
 
@@ -100,16 +98,16 @@ void sendImage(uint8_t* imageData, size_t inputWidth, size_t inputHeight) {
 	building->img = &img;
 	building->pos.x = 2;
 	building->pos.y = 2;
-	push(&buildings, building);
+	push(&mapLayer.buildings, building);
 
 	Building* building2 = malloc(sizeof(Building));
 	building2->img = &img;
 	building2->pos.x = 2;
 	building2->pos.y = 5;
-	push(&buildings, building2);
+	push(&mapLayer.buildings, building2);
 
-	for (size_t i = 0; i < buildings.size; i++) {
-		Building* b = (Building*)getElement(&buildings, i);
+	for (size_t i = 0; i < mapLayer.buildings.size; i++) {
+		Building* b = (Building*)getElement(&mapLayer.buildings, i);
 		jsprintf("Building %zu: Position (%d, %d)\n", i, b->pos.x, b->pos.y);
 	}
 
