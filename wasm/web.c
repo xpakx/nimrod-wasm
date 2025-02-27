@@ -30,11 +30,11 @@ Building building;
 Pos mouse;
 Pos isoMouse;
 
-uint32_t map[ROWS][COLS];
+MapLayer mapLayer;
 
 void tick() {
 	clearScreen(&canvas);
-	drawMap(&canvas, &isoMouse, &building, map);
+	drawMap(&canvas, &isoMouse, &building, &mapLayer);
 	js_draw_canvas((uint32_t)(uintptr_t)canvas.buffer, canvas.width * canvas.height * 4);
 }
 
@@ -46,11 +46,13 @@ int declareCanvas(int init_width, int init_height) {
 		return 1;
 	}
 
-	for (int i = 0; i < ROWS; i++) {
-		for (int j = 0; j < COLS; j++) {
-			map[i][j] = 0x97B106FF;
+	mapLayer = createMapLayer(ROWS, COLS);
+	for (int i = 0; i < mapLayer.width; i++) {
+		for (int j = 0; j < mapLayer.height; j++) {
+			mapLayer.map[i][j] = 0x97B106FF;
 		}
 	}
+
 	return 0;
 }
 
