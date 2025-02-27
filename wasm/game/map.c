@@ -15,25 +15,28 @@ void drawIsometricMap(Canvas* canvas, Pos* isoMouse, MapLayer* map) {
 	}
 }
 
-void renderBuildings(Canvas* canvas, Building* building) {
+void renderBuildings(Canvas* canvas, Array* buildings) {
 	Pos iso;
 	Pos screen;
-	iso.x = building->pos.x;
-	iso.y = building->pos.y;
-	isoToScreen(canvas, &iso, &screen);
+	for (size_t i = 0; i < buildings->size; i++) {
+		Building* building = (Building*)getElement(buildings, i);
+		iso.x = building->pos.x;
+		iso.y = building->pos.y;
+		isoToScreen(canvas, &iso, &screen);
+		drawImage(
+				building->img->img, 
+				building->img->width, 
+				building->img->height,
+				canvas, screen.x - building->img->width/2, screen.y - building->img->height
+			 );
+	}
 
-	drawImage(
-		building->img->img, 
-		building->img->width, 
-		building->img->height,
-		canvas, screen.x - building->img->width/2, screen.y - building->img->height
-	);
 }
 
-void drawMap(Canvas* canvas, Pos* isoMouse, Building* building, MapLayer* map) {
+void drawMap(Canvas* canvas, Pos* isoMouse, Array* buildings, MapLayer* map) {
 	drawIsometricMap(canvas, isoMouse, map);
 	// TODO: render roads
-	renderBuildings(canvas, building); // TODO: add pedestrians
+	renderBuildings(canvas, buildings); // TODO: add pedestrians
 }
 
 MapLayer createMapLayer(int width, int height) {

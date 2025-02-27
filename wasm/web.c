@@ -35,7 +35,7 @@ MapLayer mapLayer;
 
 void tick() {
 	clearScreen(&canvas);
-	drawMap(&canvas, &isoMouse, getElement(&buildings, 0), &mapLayer);
+	drawMap(&canvas, &isoMouse, &buildings, &mapLayer);
 	js_draw_canvas((uint32_t)(uintptr_t)canvas.buffer, canvas.width * canvas.height * 4);
 }
 
@@ -101,6 +101,12 @@ void sendImage(uint8_t* imageData, size_t inputWidth, size_t inputHeight) {
 	building->pos.x = 2;
 	building->pos.y = 2;
 	push(&buildings, building);
+
+	Building* building2 = malloc(sizeof(Building));
+	building2->img = &img;
+	building2->pos.x = 2;
+	building2->pos.y = 5;
+	push(&buildings, building2);
 
 	for (size_t i = 0; i < buildings.size; i++) {
 		Building* b = (Building*)getElement(&buildings, i);
