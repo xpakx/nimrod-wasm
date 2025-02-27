@@ -46,13 +46,20 @@ int declareCanvas(int init_width, int init_height) {
 		return 1;
 	}
 
-	mapLayer = createMapLayer(ROWS, COLS);
+	return 0;
+}
+
+int declareMap(int width, int height) {
+	mapLayer = createMapLayer(width, height);
+	if (mapLayer.map == NULL) {
+		jsprintf("Allocating memory for map layer failed.");
+		return 1;
+	}
 	for (int i = 0; i < mapLayer.width; i++) {
 		for (int j = 0; j < mapLayer.height; j++) {
 			mapLayer.map[i][j] = 0x97B106FF;
 		}
 	}
-
 	return 0;
 }
 
@@ -61,7 +68,12 @@ int init(int init_width, int init_height) {
 	mouse.y = 0;
 	isoMouse.x = 0;
 	isoMouse.y = 0;
-	return declareCanvas(init_width, init_height);
+
+	int can = declareCanvas(init_width, init_height);
+	if (can == 1) {
+		return 1;
+	}
+	return declareMap(ROWS, COLS);
 }
 
 int updateSize(int init_width, int init_height) {
