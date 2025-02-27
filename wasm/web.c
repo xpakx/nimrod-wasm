@@ -10,6 +10,7 @@
 #include <coord.h>
 #include <map.h>
 #include <building.h>
+#include <array.h>
 
 __attribute__((import_module("io_wasm"), import_name("jsprintf"))) 
 void js_jsprintf(char* str);
@@ -25,7 +26,7 @@ void jsprintf(const char* format, ...) {
 
 Canvas canvas;
 ImageSprite img;
-Building building;
+Array buildings;
 
 Pos mouse;
 Pos isoMouse;
@@ -34,7 +35,7 @@ MapLayer mapLayer;
 
 void tick() {
 	clearScreen(&canvas);
-	drawMap(&canvas, &isoMouse, &building, &mapLayer);
+	drawMap(&canvas, &isoMouse, getElement(&buildings, 0), &mapLayer);
 	js_draw_canvas((uint32_t)(uintptr_t)canvas.buffer, canvas.width * canvas.height * 4);
 }
 
@@ -73,6 +74,8 @@ int init(int init_width, int init_height) {
 	if (can == 1) {
 		return 1;
 	}
+	createArray(&buildings, 2);
+
 	return declareMap(ROWS, COLS);
 }
 
@@ -93,9 +96,17 @@ void click(int x, int y) {
 
 void sendImage(uint8_t* imageData, size_t inputWidth, size_t inputHeight) {
 	img = createSprite(imageData, inputWidth, inputHeight);
-	building.img = &img;
-	building.pos.x = 2;
-	building.pos.y = 2;
+	Building* building = malloc(sizeof(Building));
+	building->img = &img;
+	building->pos.x = 2;
+	building->pos.y = 2;
+	push(&buildings, building);
+
+	for (size_t i = 0; i < buildings.size; i++) {
+		Building* b = (Building*)getElement(&buildings, i);
+		jsprintf("Building %zu: Position (%d, %d)\n", i, b->pos.x, b->pos.y);
+	}
+
 }
 
 void onMouseMove(int x, int y) {
