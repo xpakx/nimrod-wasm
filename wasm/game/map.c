@@ -41,32 +41,28 @@ MapLayer createMapLayer(int width, int height) {
 	map.width = width;
 	map.height = height;
 
-	uint32_t **map_table = (uint32_t **)malloc(map.width * sizeof(uint32_t *));
-	if (map_table == NULL) {
+	map.map = (uint32_t **)malloc(map.width * sizeof(uint32_t *));
+	if (map.map == NULL) {
+		return map;
+	}
+
+	map.map[0] = (uint32_t *)malloc(map.width * map.height * sizeof(uint32_t));
+	if (map.map[0] == NULL) {
+		free(map.map);
 		map.map = NULL;
 		return map;
 	}
 
-	for (int i = 0; i < map.width; i++) {
-		map_table[i] = (uint32_t *)malloc(map.height * sizeof(uint32_t));
-		if (map_table[i] == NULL) {
-			for (int j = 0; j < i; j++) {
-				free(map_table[j]);
-			}
-			free(map_table);
-			map.map = NULL;
-			return map;
-		}
+	for (int i = 1; i < map.width; i++) {
+		map.map[i] = map.map[0] + i * map.height;
 	}
-
-	map.map = map_table;
 
 	return map;
 }
 
 void destroyMapLayer(MapLayer* map) {
-	for (int i = 0; i < map->width; i++) {
-		free(map->map[i]);
+	if (map->map[0] != NULL) {
+		free(map->map[0]);
 	}
 	free(map->map);
 }
