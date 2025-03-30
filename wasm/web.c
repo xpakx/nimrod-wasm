@@ -26,6 +26,7 @@ void jsprintf(const char* format, ...) {
 
 Canvas canvas;
 ImageSprite img;
+Array sprites;
 
 Pos mouse;
 Pos isoMouse;
@@ -62,6 +63,7 @@ int declareMap(int width, int height) {
 		}
 	}
 	createArray(&mapLayer.buildings, 2);
+	createArray(&sprites, 2);
 	return 0;
 }
 
@@ -94,15 +96,17 @@ void click(int x, int y) {
 }
 
 void sendImage(uint8_t* imageData, size_t inputWidth, size_t inputHeight) {
-	img = createSprite(imageData, inputWidth, inputHeight);
+	ImageSprite*  sprite = createSprite(imageData, inputWidth, inputHeight);
+	push(&sprites, sprite);
+
 	Building* building = malloc(sizeof(Building));
-	building->img = &img;
+	building->img = getElement(&sprites, 0);
 	building->pos.x = 2;
 	building->pos.y = 2;
 	push(&mapLayer.buildings, building);
 
 	Building* building2 = malloc(sizeof(Building));
-	building2->img = &img;
+	building2->img = getElement(&sprites, 0);
 	building2->pos.x = 2;
 	building2->pos.y = 5;
 	push(&mapLayer.buildings, building2);

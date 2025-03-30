@@ -15,7 +15,7 @@ typedef struct {
     Pos pos;
 } Building;
 
-ImageSprite createSprite(uint8_t* img, int width, int height);
+ImageSprite* createSprite(uint8_t* img, int width, int height);
 void destroySprite(ImageSprite* sprite);
 
 #endif // BUILDING_H
