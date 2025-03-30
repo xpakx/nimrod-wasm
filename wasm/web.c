@@ -31,6 +31,7 @@ Pos mouse;
 Pos isoMouse;
 
 MapLayer mapLayer;
+int scale = 4;
 
 void tick() {
 	clearScreen(&canvas);
@@ -133,7 +134,23 @@ void onMouseUp(int button, int x, int y) {
 	// TODO
 }
 
+void changeScale(int delta) {
+	scale += delta;
+	if (scale < 1) {
+		scale = 1;
+	}
+	if (scale > 10) {
+		scale = 10;
+	}
+}
+
 void onMouseWheel(int deltaY) {
+	if (deltaY > 0) {
+		changeScale(-1);
+	} else {
+		changeScale(1);
+	}
+	jsprintf("scale: %d", scale);
 	// TODO
 }
 

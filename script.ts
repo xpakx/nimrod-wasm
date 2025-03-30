@@ -127,6 +127,11 @@ async function init() {
 		nimrod.onMouseMove(mouseX, mouseY);
 	});
 
+	canvas.addEventListener('wheel', function(event) {
+		if (!nimrod) return;
+		nimrod.onMouseWheel(event.deltaY);
+	});
+
 
 
 	function render() {
