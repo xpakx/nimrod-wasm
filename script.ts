@@ -135,20 +135,36 @@ async function init() {
 		window.requestAnimationFrame(render);
 	}
 
+	const loader = new ImageLoader();
+	await loader.loadBuilding("img/house.svg", 2, memory)
+
 	render();
+}
 
-	const img = new Image();
-	img.src = "img/house.svg";
-	await img.decode();
+class ImageLoader {
+	offscreenCanvas: OffscreenCanvas;
+	contextOff: OffscreenCanvasRenderingContext2D;
 
+	constructor() {
+		this.offscreenCanvas = new OffscreenCanvas(10, 10);
+		this.contextOff = this.offscreenCanvas.getContext('2d')!;
+	}
 
-	const imgWidth = 64 * 2;
-	const imgHeight = img.height*(imgWidth/img.width);
+	// TODO: multiple sizes
+	async loadBuilding(filename: string, size: number, memory: any) {
+		const img = new Image();
+		img.src = filename;
+		await img.decode();
 
-	const offscreenCanvas = new OffscreenCanvas(imgWidth, imgHeight);
-	const contextOff = offscreenCanvas.getContext('2d')!;
-	contextOff.drawImage(img, 0, 0, imgWidth, imgHeight);
-	sendImageToNimrod(offscreenCanvas, memory);
+		const imgWidth = 64 * size;
+		const imgHeight = img.height*(imgWidth/img.width);
+
+		this.offscreenCanvas.width = imgWidth;
+		this.offscreenCanvas.height = imgHeight;
+
+		this.contextOff.drawImage(img, 0, 0, imgWidth, imgHeight);
+		sendImageToNimrod(this.offscreenCanvas, memory);
+	}
 }
 
 function encode(memory: any, base: number, string: string) {
