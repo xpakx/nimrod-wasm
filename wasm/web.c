@@ -59,7 +59,7 @@ int declareMap(int width, int height) {
 	}
 	for (int i = 0; i < mapLayer.width; i++) {
 		for (int j = 0; j < mapLayer.height; j++) {
-			mapLayer.map[i][j] = 0x97B106FF;
+			mapLayer.map[i][j] = 0xD8BE5DFF;
 		}
 	}
 	createArray(&mapLayer.buildings, 2);

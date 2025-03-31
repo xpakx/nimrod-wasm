@@ -142,9 +142,10 @@ async function init() {
 	}
 
 	const loader = new ImageLoader();
-	const indices = await loader.loadBuilding("img/house.svg", 2, memory);
+	const indices = await loader.loadBuilding("img/house.png", 2, memory);
+	const wellIndices = await loader.loadBuilding("img/well.png", 1, memory);
 	nimrod.createBuilding(2, 2, ...indices);
-	nimrod.createBuilding(2, 5, ...indices);
+	nimrod.createBuilding(2, 5, ...wellIndices);
 
 	render();
 }
@@ -158,7 +159,7 @@ class ImageLoader {
 		this.contextOff = this.offscreenCanvas.getContext('2d', { willReadFrequently: true })!;
 	}
 
-	// TODO: multiple sizes
+	// TODO: create a building prototype
 	async loadBuilding(filename: string, size: number, memory: any): Promise<number[]> {
 		const img = new Image();
 		img.src = filename;
