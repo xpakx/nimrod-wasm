@@ -14,4 +14,7 @@
 #define ROWS 4
 #define COLS 6
 
+#define MIN_SCALE 3
+#define MAX_SCALE 10
+
 #endif // COMMON_H

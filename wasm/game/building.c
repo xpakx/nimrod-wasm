@@ -15,3 +15,12 @@ void destroySprite(ImageSprite* sprite) {
     }
     free(sprite);
 }
+
+int scaleToIndex(int scale) {
+	return scale - MIN_SCALE;
+}
+// TODO
+ImageSprite* getImgForScale(Building* building, int scale) {
+	int index = scaleToIndex(scale);
+	return building->sprites[index];
+}

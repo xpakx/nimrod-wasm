@@ -14,6 +14,7 @@ typedef struct {
     Array buildings;
     int tileWidth;
     int tileHeight;
+    int scale;
 } MapLayer;
 
 void drawMap(Canvas* canvas, Pos* isoMouse, MapLayer* map);

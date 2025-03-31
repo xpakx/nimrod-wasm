@@ -19,7 +19,7 @@ interface NimrodWasmInputs {
     init: (width: number, height: number) => number;
     updateSize: (width: number, height: number) => number;
     tick: () => void;
-    sendImage: (ptr: number, width: number, height: number) => void;
+    sendImage: (ptr: number, width: number, height: number) => number;
     malloc: (size: number) => number;
     onMouseClick: (button: number, mouseX: number, mouseY: number) => void;
     onMouseMove: (mouseX: number, mouseY: number) => void;
@@ -27,6 +27,7 @@ interface NimrodWasmInputs {
     onMouseWheel: (deltaY: number) => void;
     onKeyDown: (key: number) => void;
     onKeyUp: (key: number) => void;
+    createBuilding: (x: number, y: number, ...imgIndices: number[]) => void;
 }
 
 let canvas: (HTMLCanvasElement | null) = null;
@@ -141,7 +142,9 @@ async function init() {
 	}
 
 	const loader = new ImageLoader();
-	await loader.loadBuilding("img/house.svg", 2, memory)
+	const indices = await loader.loadBuilding("img/house.svg", 2, memory);
+	nimrod.createBuilding(2, 2, ...indices);
+	nimrod.createBuilding(2, 5, ...indices);
 
 	render();
 }
@@ -152,23 +155,28 @@ class ImageLoader {
 
 	constructor() {
 		this.offscreenCanvas = new OffscreenCanvas(10, 10);
-		this.contextOff = this.offscreenCanvas.getContext('2d')!;
+		this.contextOff = this.offscreenCanvas.getContext('2d', { willReadFrequently: true })!;
 	}
 
 	// TODO: multiple sizes
-	async loadBuilding(filename: string, size: number, memory: any) {
+	async loadBuilding(filename: string, size: number, memory: any): Promise<number[]> {
 		const img = new Image();
 		img.src = filename;
 		await img.decode();
 
-		const imgWidth = 64 * size;
-		const imgHeight = img.height*(imgWidth/img.width);
+		let indices = [];
+		for (let i = 3; i <= 10; i++) {
+			const imgWidth = 64 * size * 0.2 * i;
+			const imgHeight = img.height*(imgWidth/img.width);
 
-		this.offscreenCanvas.width = imgWidth;
-		this.offscreenCanvas.height = imgHeight;
+			this.offscreenCanvas.width = imgWidth;
+			this.offscreenCanvas.height = imgHeight;
 
-		this.contextOff.drawImage(img, 0, 0, imgWidth, imgHeight);
-		sendImageToNimrod(this.offscreenCanvas, memory);
+			this.contextOff.drawImage(img, 0, 0, imgWidth, imgHeight);
+			const index = sendImageToNimrod(this.offscreenCanvas, memory);
+			indices.push(index);
+		}
+		return indices;
 	}
 }
 
@@ -207,12 +215,14 @@ function encodeImage(offscreenCanvas: OffscreenCanvas, memory: any, base: number
 	return pixelDataLength;
 }
 
-function sendImageToNimrod(offscreenCanvas: OffscreenCanvas, memory: any) {
-	if (!nimrod) return;
+function sendImageToNimrod(offscreenCanvas: OffscreenCanvas, memory: any): number {
+	if (!nimrod) return -1;
 	const pixelDataLength = offscreenCanvas.width * offscreenCanvas.height * 4;
 	const base = nimrod.malloc(pixelDataLength);
 	encodeImage(offscreenCanvas, memory, base);
-	nimrod.sendImage(base, offscreenCanvas.width, offscreenCanvas.height);
+	const imgIndex = nimrod.sendImage(base, offscreenCanvas.width, offscreenCanvas.height);
+	console.log(`Image ${imgIndex} added`);
+	return imgIndex;
 }
 
 function translateKey(key: string): undefined | number {

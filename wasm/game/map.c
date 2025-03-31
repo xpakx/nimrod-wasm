@@ -15,7 +15,7 @@ void drawIsometricMap(Canvas* canvas, Pos* isoMouse, MapLayer* map) {
 	}
 }
 
-void renderBuildings(Canvas* canvas, Array* buildings) {
+void renderBuildings(Canvas* canvas, Array* buildings, int scale) {
 	Pos iso;
 	Pos screen;
 	for (size_t i = 0; i < buildings->size; i++) {
@@ -23,11 +23,12 @@ void renderBuildings(Canvas* canvas, Array* buildings) {
 		iso.x = building->pos.x;
 		iso.y = building->pos.y;
 		isoToScreen(canvas, &iso, &screen);
+		ImageSprite* img = getImgForScale(building, scale);
 		drawImage(
-				building->img->img, 
-				building->img->width, 
-				building->img->height,
-				canvas, screen.x - building->img->width/2, screen.y - building->img->height
+				img->img, 
+				img->width, 
+				img->height,
+				canvas, screen.x - img->width/2, screen.y - img->height
 			 );
 	}
 
@@ -37,12 +38,13 @@ void rescaleMap(MapLayer* map, int newScale) {
 	float scale = newScale * 0.2f;
 	map->tileWidth = (float)DEFAULT_TILE_WIDTH * scale;
 	map->tileHeight = (float)DEFAULT_TILE_HEIGHT * scale;
+	map->scale = newScale;
 }
 
 void drawMap(Canvas* canvas, Pos* isoMouse, MapLayer* map) {
 	drawIsometricMap(canvas, isoMouse, map);
 	// TODO: render roads
-	renderBuildings(canvas, &map->buildings); // TODO: add pedestrians
+	renderBuildings(canvas, &map->buildings, map->scale); // TODO: add pedestrians
 }
 
 MapLayer createMapLayer(int width, int height) {
@@ -67,6 +69,7 @@ MapLayer createMapLayer(int width, int height) {
 	}
 	map.tileWidth = DEFAULT_TILE_WIDTH;
 	map.tileHeight = DEFAULT_TILE_HEIGHT;
+	map.scale = 5;
 
 	return map;
 }

@@ -95,27 +95,31 @@ void click(int x, int y) {
 	}
 }
 
-void sendImage(uint8_t* imageData, size_t inputWidth, size_t inputHeight) {
+int sendImage(uint8_t* imageData, size_t inputWidth, size_t inputHeight) {
 	ImageSprite*  sprite = createSprite(imageData, inputWidth, inputHeight);
 	push(&sprites, sprite);
+	return sprites.size - 1;
+}
 
+// TODO: building prototype
+void createBuilding(int x, int y, int img3, int img4, int img5, int img6, int img7, int img8, int img9, int img10) {
 	Building* building = malloc(sizeof(Building));
-	building->img = getElement(&sprites, 0);
-	building->pos.x = 2;
-	building->pos.y = 2;
+	building->sprites[0] = getElement(&sprites, img3);
+	building->sprites[1] = getElement(&sprites, img4);
+	building->sprites[2] = getElement(&sprites, img5);
+	building->sprites[3] = getElement(&sprites, img6);
+	building->sprites[4] = getElement(&sprites, img7);
+	building->sprites[5] = getElement(&sprites, img8);
+	building->sprites[6] = getElement(&sprites, img9);
+	building->sprites[7] = getElement(&sprites, img10);
+	building->pos.x = x;
+	building->pos.y = y;
 	push(&mapLayer.buildings, building);
-
-	Building* building2 = malloc(sizeof(Building));
-	building2->img = getElement(&sprites, 0);
-	building2->pos.x = 2;
-	building2->pos.y = 5;
-	push(&mapLayer.buildings, building2);
 
 	for (size_t i = 0; i < mapLayer.buildings.size; i++) {
 		Building* b = (Building*)getElement(&mapLayer.buildings, i);
 		jsprintf("Building %zu: Position (%d, %d)\n", i, b->pos.x, b->pos.y);
 	}
-
 }
 
 void onMouseMove(int x, int y) {
@@ -140,11 +144,11 @@ void onMouseUp(int button, int x, int y) {
 
 void changeScale(int delta) {
 	scale += delta;
-	if (scale < 3) {
-		scale = 3;
+	if (scale < MIN_SCALE) {
+		scale = MIN_SCALE;
 	}
-	if (scale > 10) {
-		scale = 10;
+	if (scale > MAX_SCALE) {
+		scale = MAX_SCALE;
 	}
 	rescaleMap(&mapLayer, scale);
 	rescaleTiles(&canvas, scale);
