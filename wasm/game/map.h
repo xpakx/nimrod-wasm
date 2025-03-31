@@ -12,10 +12,13 @@ typedef struct {
     int width;
     int height;
     Array buildings;
+    int tileWidth;
+    int tileHeight;
 } MapLayer;
 
 void drawMap(Canvas* canvas, Pos* isoMouse, MapLayer* map);
 MapLayer createMapLayer(int width, int height);
 void destroyMapLayer(MapLayer* map);
+void rescaleMap(MapLayer* map, int newScale);
 
 #endif // MAP_H

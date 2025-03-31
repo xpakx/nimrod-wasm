@@ -10,12 +10,16 @@ typedef struct {
     uint8_t* buffer;
     int width;
     int height;
+    int tileWidth;
+    int tileHeight;
 } Canvas;
 
 void clearScreen(Canvas* canvas);
-void drawTile(Canvas* canvas, int x, int y, uint32_t color);
+void drawTile(Canvas* canvas, int x, int y, uint32_t color, int width, int height);
 void drawImage(uint8_t* image, int imgWidth, int imgHeight, Canvas* canvas, int startX, int startY);
 
 Canvas createCanvas(int width, int height);
 void destroyCanvas(Canvas* canvas);
+void rescaleTiles(Canvas* canvas, int newScale);
+
 #endif // CANVAS_H

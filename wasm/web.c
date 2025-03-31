@@ -32,7 +32,7 @@ Pos mouse;
 Pos isoMouse;
 
 MapLayer mapLayer;
-int scale = 4;
+int scale = 5;
 
 void tick() {
 	clearScreen(&canvas);
@@ -140,12 +140,14 @@ void onMouseUp(int button, int x, int y) {
 
 void changeScale(int delta) {
 	scale += delta;
-	if (scale < 1) {
-		scale = 1;
+	if (scale < 3) {
+		scale = 3;
 	}
 	if (scale > 10) {
 		scale = 10;
 	}
+	rescaleMap(&mapLayer, scale);
+	rescaleTiles(&canvas, scale);
 }
 
 void onMouseWheel(int deltaY) {

@@ -10,7 +10,7 @@ void drawIsometricMap(Canvas* canvas, Pos* isoMouse, MapLayer* map) {
 			if (isoMouse->x == iso.x && isoMouse->y == iso.y) {
 				color = 0X000000FF;
 			}
-			drawTile(canvas, screen.x, screen.y, color);
+			drawTile(canvas, screen.x, screen.y, color, map->tileWidth, map->tileHeight);
 		}
 	}
 }
@@ -31,6 +31,12 @@ void renderBuildings(Canvas* canvas, Array* buildings) {
 			 );
 	}
 
+}
+
+void rescaleMap(MapLayer* map, int newScale) {
+	float scale = newScale * 0.2f;
+	map->tileWidth = (float)DEFAULT_TILE_WIDTH * scale;
+	map->tileHeight = (float)DEFAULT_TILE_HEIGHT * scale;
 }
 
 void drawMap(Canvas* canvas, Pos* isoMouse, MapLayer* map) {
@@ -59,6 +65,8 @@ MapLayer createMapLayer(int width, int height) {
 	for (int i = 1; i < map.width; i++) {
 		map.map[i] = map.map[0] + i * map.height;
 	}
+	map.tileWidth = DEFAULT_TILE_WIDTH;
+	map.tileHeight = DEFAULT_TILE_HEIGHT;
 
 	return map;
 }

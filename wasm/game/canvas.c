@@ -22,7 +22,7 @@ void clearScreen(Canvas* canvas) {
 	}
 }
 
-uint8_t alpha_blend(uint8_t src, uint8_t dest, float alpha) {
+uint8_t alphaBlend(uint8_t src, uint8_t dest, float alpha) {
 	return (uint8_t)(src * alpha + dest * (1 - alpha));
 }
 
@@ -34,19 +34,19 @@ void drawRow(Canvas* canvas, int y, int startX, int endX, uint32_t color) {
         }
 }
 
-void drawTile(Canvas* canvas, int x, int y, uint32_t color) {
-	int halfWidth = DEFAULT_TILE_WIDTH / 2;
-	int halfHeight = DEFAULT_TILE_HEIGHT / 2;
+void drawTile(Canvas* canvas, int x, int y, uint32_t color, int width, int height) {
+	int halfWidth = width / 2;
+	int halfHeight = height / 2;
 
 	int startX = x;
 	int endX = x;
-	int step = DEFAULT_TILE_WIDTH / DEFAULT_TILE_HEIGHT;
+	int step = width / height;
 	for (int dy = 0; dy < halfHeight; dy++) {
 		startX -= step;
 		endX += step;
 		drawRow(canvas, y - dy, startX, endX, color);
 	}
-	for (int dy = halfHeight; dy < DEFAULT_TILE_HEIGHT; dy++) {
+	for (int dy = halfHeight; dy < height; dy++) {
 		startX += step;
 		endX -= step;
 		drawRow(canvas, y - dy, startX, endX, color);
@@ -67,9 +67,9 @@ void drawImage(uint8_t* image, int imgWidth, int imgHeight, Canvas* canvas, int 
 
 			float alpha = image[index + 3] / 255.0f;
 
-			buffer[buffer_index] = alpha_blend(image[index], buffer[buffer_index], alpha);
-			buffer[buffer_index + 1] = alpha_blend(image[index + 1], buffer[buffer_index + 1], alpha);
-			buffer[buffer_index + 2] = alpha_blend(image[index + 2], buffer[buffer_index + 2], alpha);
+			buffer[buffer_index] = alphaBlend(image[index], buffer[buffer_index], alpha);
+			buffer[buffer_index + 1] = alphaBlend(image[index + 1], buffer[buffer_index + 1], alpha);
+			buffer[buffer_index + 2] = alphaBlend(image[index + 2], buffer[buffer_index + 2], alpha);
 			buffer[buffer_index + 3] = (uint8_t)(image[index + 3] + buffer[buffer_index + 3] * (1 - alpha));
 		}
 	}
@@ -80,6 +80,8 @@ Canvas createCanvas(int width, int height) {
     canvas.width = width;
     canvas.height = height;
     canvas.buffer = (uint8_t*)malloc(width * height * 4);
+    canvas.tileWidth = DEFAULT_TILE_WIDTH;
+    canvas.tileHeight = DEFAULT_TILE_HEIGHT;
     return canvas;
 }
 
@@ -88,4 +90,10 @@ void destroyCanvas(Canvas* canvas) {
         free(canvas->buffer);
         canvas->buffer = NULL;
     }
+}
+
+void rescaleTiles(Canvas* canvas, int newScale) {
+	float scale = newScale * 0.2f;
+	canvas->tileWidth = (float)DEFAULT_TILE_WIDTH * scale;
+	canvas->tileHeight = (float)DEFAULT_TILE_HEIGHT * scale;
 }
