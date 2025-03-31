@@ -26,9 +26,24 @@ uint8_t alphaBlend(uint8_t src, uint8_t dest, float alpha) {
 	return (uint8_t)(src * alpha + dest * (1 - alpha));
 }
 
+int max(int a, int b) {
+	if (a > b) {
+		return a;
+	}
+	return b;
+}
+
+int min(int a, int b) {
+	if (a < b) {
+		return a;
+	}
+	return b;
+}
+
 void drawRow(Canvas* canvas, int y, int startX, int endX, uint32_t color) {
-	int width = canvas->width;
-        for (int dx = startX + 1; dx <= endX - 1; dx++) { // +1 and -1 just for debugging
+	int width = canvas->width; 
+	// +1 and -1 just for debugging
+        for (int dx = startX + 1; dx <= endX - 1; dx++) {
             int index = (y * width + dx) * 4;
             fillPixel(canvas->buffer, index, color);
         }
@@ -41,15 +56,16 @@ void drawTile(Canvas* canvas, int x, int y, uint32_t color, int width, int heigh
 	int startX = x;
 	int endX = x;
 	int step = width / height;
+	int cwidth = canvas->width-1;
 	for (int dy = 0; dy < halfHeight; dy++) {
 		startX -= step;
 		endX += step;
-		drawRow(canvas, y - dy, startX, endX, color);
+		drawRow(canvas, y - dy, max(0, startX), min(cwidth, endX), color);
 	}
 	for (int dy = halfHeight; dy < height; dy++) {
 		startX += step;
 		endX -= step;
-		drawRow(canvas, y - dy, startX, endX, color);
+		drawRow(canvas, y - dy, max(0, startX), min(cwidth, endX), color);
 	}
 }
 
