@@ -5,7 +5,7 @@ interface NimrodWasmInputs {
     init: (width: number, height: number) => number;
     updateSize: (width: number, height: number) => number;
     tick: () => void;
-    sendImage: (ptr: number, width: number, height: number) => void;
+    sendImage: (ptr: number, width: number, height: number) => number;
     malloc: (size: number) => number;
     onMouseClick: (button: number, mouseX: number, mouseY: number) => void;
     onMouseMove: (mouseX: number, mouseY: number) => void;
