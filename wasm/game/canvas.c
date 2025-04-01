@@ -42,8 +42,7 @@ int min(int a, int b) {
 
 void drawRow(Canvas* canvas, int y, int startX, int endX, uint32_t color) {
 	int width = canvas->width; 
-	// +1 and -1 just for debugging
-        for (int dx = startX + 1; dx <= endX - 1; dx++) {
+        for (int dx = startX; dx <= endX; dx++) {
             int index = (y * width + dx) * 4;
             fillPixel(canvas->buffer, index, color);
         }
